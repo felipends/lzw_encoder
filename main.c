@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define ALPHABET_SIZE 256
+
 //return the size of encoded information in bytes
 size_t lzw_encoder(char** info, int size);
 
@@ -9,6 +11,10 @@ int main(int argc, char** argv) {
     char* buffer;
 
     input_fp = fopen(argv[1], "rb");
+    if(!input_fp){
+        puts("(!) error open file. (!)");
+        return -1;
+    }
 
     //compute file size
     fseek(input_fp, 0, SEEK_END);
@@ -27,35 +33,40 @@ int main(int argc, char** argv) {
 }
 
 size_t lzw_encoder(char** info, int size) {
-    char* alphabet = NULL;
-    int alphabet_size = 0;
+    unsigned char* alphabet[ALPHABET_SIZE] = {NULL};
+    int symbols_in_alpha = 0;
 
     //flag
-    short hasSymbol = 0;
-    
-    for(int i = 0; i < size; i++) {
-        if (alphabet == NULL) {
-            alphabet = malloc(1);
-            alphabet[alphabet_size] = (*info)[i];
-            alphabet_size++;
+    short has_symbol = 0;
+    // populate initial alphabet
+    for(int i = 0; i < size; i++){
+        if(!symbols_in_alpha){
+            alphabet[0] = malloc(1);
+            (*alphabet[0]) = (*info)[i];
+            symbols_in_alpha++;
         } else {
-            for(int alpha_i = 0; alpha_i < alphabet_size; alpha_i++) {
-                if(alphabet[alpha_i] == (*info)[i]){
-                    hasSymbol = 1;
+            // look for the symbol in alphabet
+            for(int alpha_i = 0; alpha_i < symbols_in_alpha; alpha_i++) {
+                if((*alphabet[alpha_i]) == (*info)[i]){
+                    has_symbol = 1;
                     break;
                 }
             }
-            if(!hasSymbol){
-                alphabet = realloc(alphabet, alphabet_size+1);
-                alphabet[alphabet_size] = (*info)[i];
-                alphabet_size++;
+
+            if(!has_symbol){
+                alphabet[symbols_in_alpha] = malloc(1);
+                (*alphabet[symbols_in_alpha]) = (*info)[i];
+                symbols_in_alpha++;
             }
-            
-            hasSymbol = 0;
+
+            has_symbol = 0;
         }
     }
-
-    printf("%s\n", alphabet);
+    //initial alphabet read
+    
+    for(int i = 0; i < symbols_in_alpha; i++){
+        printf("%c\n", (*alphabet[i]));
+    }
 
     return 0;
 }
