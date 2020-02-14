@@ -5,6 +5,10 @@
 
 //return the size of encoded information in bytes
 size_t lzw_encoder(char** info, int size);
+//return the size of the initial alphabet
+size_t initialize_alphabet(unsigned char* alphabet[ALPHABET_SIZE], char** info, int info_size);
+//dealloc all data dynamically allocated to prevent memory leaks
+void dealloc_alphabet(unsigned char* alphabet[ALPHABET_SIZE], size_t size);
 
 int main(int argc, char** argv) {
     FILE* input_fp;
@@ -29,44 +33,61 @@ int main(int argc, char** argv) {
 
     lzw_encoder(&buffer, fsize);
 
+    free(buffer);
+
     return 0;
+}
+
+size_t initialize_alphabet(unsigned char* alphabet[ALPHABET_SIZE], char** info, int info_size) {
+  size_t symbols_in_alpha = 0;
+
+  //flag
+  short has_symbol = 0;
+  // populate initial alphabet
+  for(int i = 0; i < info_size; i++){
+      if(!symbols_in_alpha){
+          alphabet[0] = malloc(1);
+          (*alphabet[0]) = (*info)[i];
+          symbols_in_alpha++;
+      } else {
+          // look for the symbol in alphabet
+          for(int alpha_i = 0; alpha_i < symbols_in_alpha; alpha_i++) {
+              if((*alphabet[alpha_i]) == (*info)[i]){
+                  has_symbol = 1;
+                  break;
+              }
+          }
+
+          if(!has_symbol){
+              alphabet[symbols_in_alpha] = malloc(1);
+              (*alphabet[symbols_in_alpha]) = (*info)[i];
+              symbols_in_alpha++;
+          }
+
+          has_symbol = 0;
+      }
+  }
+  //initial alphabet ready
+  return symbols_in_alpha;
+}
+
+void dealloc_alphabet(unsigned char* alphabet[ALPHABET_SIZE], size_t size) {
+    int index = 0;
+    while(alphabet[index]){
+        free(alphabet[index]);
+        alphabet[index] = NULL;
+        index++;
+    }
 }
 
 size_t lzw_encoder(char** info, int size) {
     unsigned char* alphabet[ALPHABET_SIZE] = {NULL};
-    int symbols_in_alpha = 0;
+    size_t initial_alphabet_size = initialize_alphabet(alphabet, info, size);
 
-    //flag
-    short has_symbol = 0;
-    // populate initial alphabet
-    for(int i = 0; i < size; i++){
-        if(!symbols_in_alpha){
-            alphabet[0] = malloc(1);
-            (*alphabet[0]) = (*info)[i];
-            symbols_in_alpha++;
-        } else {
-            // look for the symbol in alphabet
-            for(int alpha_i = 0; alpha_i < symbols_in_alpha; alpha_i++) {
-                if((*alphabet[alpha_i]) == (*info)[i]){
-                    has_symbol = 1;
-                    break;
-                }
-            }
-
-            if(!has_symbol){
-                alphabet[symbols_in_alpha] = malloc(1);
-                (*alphabet[symbols_in_alpha]) = (*info)[i];
-                symbols_in_alpha++;
-            }
-
-            has_symbol = 0;
-        }
-    }
-    //initial alphabet read
-    
-    for(int i = 0; i < symbols_in_alpha; i++){
+    for(int i = 0; i < initial_alphabet_size; i++){
         printf("%c\n", (*alphabet[i]));
     }
 
+    dealloc_alphabet(alphabet, initial_alphabet_size);
     return 0;
 }
