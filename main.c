@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define ALPHABET_SIZE 256
 
@@ -79,15 +80,53 @@ void dealloc_alphabet(unsigned char* alphabet[ALPHABET_SIZE], size_t size) {
         index++;
     }
 }
+/*
+  se foi adicionado, retorna um valor maior que o tamanho atual do alfabeto
+  dessa forma é sabido que o índice retornado foi resultado de uma adição ao alfabeto
+*/
+int alphabet_check(unsigned char** alphabet, unsigned char* phrase, short phrase_size) {
+    int alphabet_index = 0;
+
+    //flag
+    short phrase_found = 0;
+    while(alphabet[alphabet_index]){
+        if(0 == strncmp(alphabet[alphabet_index], phrase, phrase_size)){
+            phrase_found = 1;
+            break;
+        }
+        alphabet_index++;
+    }
+
+    if(!phrase_found){
+        alphabet[alphabet_index] = malloc(phrase_size*sizeof(unsigned char*));
+        alphabet[alphabet_index] = phrase;
+    }
+
+    return alphabet_index;
+}
 
 size_t lzw_encoder(char** info, int size) {
     unsigned char* alphabet[ALPHABET_SIZE] = {NULL};
-    size_t initial_alphabet_size = initialize_alphabet(alphabet, info, size);
+    size_t alphabet_size = initialize_alphabet(alphabet, info, size);
 
-    for(int i = 0; i < initial_alphabet_size; i++){
-        printf("%c\n", (*alphabet[i]));
+    unsigned char** ptr_buffer = malloc(size*sizeof(unsigned char*));
+    for(int i = 0; i < size; i++){
+        ptr_buffer[i] = malloc(1);
+        (*ptr_buffer[i]) = (*info)[i];
     }
 
-    dealloc_alphabet(alphabet, initial_alphabet_size);
+    int phrase_index;
+    for(int i = 0; i < size; i++){
+        phrase_index = alphabet_check(alphabet, ptr_buffer[i], 1);
+        printf("%d\n", phrase_index);
+    }
+
+    // memory dealloc section
+    for(int i = 0; i < size; i++){
+        free(ptr_buffer[i]);
+        ptr_buffer[i] = NULL;
+    }
+    free(ptr_buffer);
+    dealloc_alphabet(alphabet, alphabet_size);
     return 0;
 }
