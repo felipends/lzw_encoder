@@ -98,11 +98,21 @@ int alphabet_check(unsigned char** alphabet, unsigned char* phrase, short phrase
     }
 
     if(!phrase_found){
-        alphabet[alphabet_index] = malloc(phrase_size*sizeof(unsigned char*));
-        alphabet[alphabet_index] = phrase;
+        alphabet_index = -1;
     }
 
     return alphabet_index;
+}
+
+void add_to_alphabet(unsigned char** alphabet, unsigned char* phrase, short phrase_size) {
+    short alpha_index = 0;
+
+    while (alphabet[alpha_index]) {
+        alpha_index++;
+    }
+
+    alphabet[alpha_index] = malloc(phrase_size);
+    alphabet[alpha_index] = phrase;
 }
 
 size_t lzw_encoder(char** info, int size) {
@@ -116,9 +126,26 @@ size_t lzw_encoder(char** info, int size) {
     }
 
     int phrase_index;
+    unsigned char* aux_phrase = {NULL};
     for(int i = 0; i < size; i++){
-        phrase_index = alphabet_check(alphabet, ptr_buffer[i], 1);
-        printf("%d\n", phrase_index);
+        for(int j = 1; j < size; j++) {
+            aux_phrase = malloc(j);
+            for(int k = 0; k < j; k++){
+                aux_phrase[k] = (*info)[i+k];
+            }
+            phrase_index = alphabet_check(alphabet, aux_phrase, j);
+            if(phrase_index < 0){
+                add_to_alphabet(alphabet, aux_phrase, j);
+                alphabet_size++;
+                break;
+            }
+        }
+    }
+
+    for(int i = 0; i < alphabet_size; i++){
+        for(int j = 0; alphabet[i][j]; j++)
+            printf("%c", alphabet[i][j]);
+        printf("\n");
     }
 
     // memory dealloc section
@@ -126,6 +153,7 @@ size_t lzw_encoder(char** info, int size) {
         free(ptr_buffer[i]);
         ptr_buffer[i] = NULL;
     }
+    free(aux_phrase);
     free(ptr_buffer);
     dealloc_alphabet(alphabet, alphabet_size);
     return 0;
