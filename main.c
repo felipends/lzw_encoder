@@ -70,8 +70,7 @@ size_t initialize_alphabet(unsigned char* alphabet[ALPHABET_SIZE], char* info, i
             has_symbol = 0;
         }
     }
-    //initial alphabet ready 
-
+    //initial alphabet ready
     return symbols_in_alpha;
 }
 
@@ -120,8 +119,10 @@ void add_to_alphabet(unsigned char** alphabet, unsigned char* phrase, short phra
 }
 
 size_t lzw_encoder(char* info, int size) {
-    unsigned char* alphabet[ALPHABET_SIZE] = {NULL}, code[ALPHABET_SIZE];
+    unsigned char* alphabet[ALPHABET_SIZE] = {NULL};
     size_t alphabet_size = initialize_alphabet(alphabet, info, size), code_size = 0;
+
+    unsigned short code[ALPHABET_SIZE] = {0};
 
     unsigned char** ptr_buffer = malloc(size*sizeof(unsigned char*));
     for(int i = 0; i < size; i++){
@@ -129,13 +130,14 @@ size_t lzw_encoder(char* info, int size) {
         (*ptr_buffer[i]) = info[i];
     }
 
-    int phrase_index;
+    int phrase_index, current_index, offset, current_offset;
     unsigned char* aux_phrase = {NULL};
-    for(int i = 0; i < size; i++){
+    for(int i = 0; i < size-1; i++){
         for(int j = 1; j < size; j++) {
             aux_phrase = malloc(j);
             for(int k = 0; k < j; k++){
                 aux_phrase[k] = info[i+k];
+                offset = k;
             }
             phrase_index = alphabet_check(alphabet, aux_phrase, j);
             if(phrase_index < 0){
@@ -143,9 +145,12 @@ size_t lzw_encoder(char* info, int size) {
                 alphabet_size++;
                 break;
             } else {
-                printf("%d\n", phrase_index);
+                current_offset = i+offset;
+                current_index = phrase_index;
             }
         }
+        i = current_offset;
+        printf("%d\n", current_index);
     }
 
     for(int i = 0; i < alphabet_size; i++){
