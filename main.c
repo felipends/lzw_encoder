@@ -82,10 +82,7 @@ void dealloc_alphabet(unsigned char* alphabet[ALPHABET_SIZE], size_t size) {
         index++;
     }
 }
-/*
-  se foi adicionado, retorna um valor maior que o tamanho atual do alfabeto
-  dessa forma é sabido que o índice retornado foi resultado de uma adição ao alfabeto
-*/
+
 int alphabet_check(unsigned char** alphabet, unsigned char* phrase, short phrase_size) {
     int alphabet_index = 0;
 
@@ -150,14 +147,17 @@ size_t lzw_encoder(char* info, int size) {
             }
         }
         i = current_offset;
-        printf("%d\n", current_index);
+		code[code_size] = current_index;
+		code_size++;
     }
+    printf("\n");
 
-    for(int i = 0; i < alphabet_size; i++){
-        for(int j = 0; alphabet[i][j]; j++)
-            printf("%c", alphabet[i][j]);
-        printf("\n");
-    }
+	//TODO: function to create code in k bits
+	for(int i = 0; i < code_size; i++) {
+		printf("%d ", code[i]);
+	} 
+
+	printf("\n");
 
     // memory dealloc section
     for(int i = 0; i < size; i++){
